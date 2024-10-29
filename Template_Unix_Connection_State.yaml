@@ -1,0 +1,222 @@
+zabbix_export:
+  version: '6.0'
+  date: '2024-10-29T07:40:47Z'
+  groups:
+    - uuid: dc579cd7a1a34222933f24f52a68bcd8
+      name: 'Linux servers'
+  templates:
+    - uuid: 9c5c87d1617648409536f9cb7ded48fd
+      template: Template_Unix_Connection_State
+      name: Template_Unix_Connection_State
+      groups:
+        - name: 'Linux servers'
+      items:
+        - uuid: d1651ebbd196484f850bc76d9f9d6d50
+          name: Controller
+          key: 'system.run[netstat -natp | awk ''{print $6}'' | sort | uniq -c,]'
+          delay: '60'
+          history: 30d
+          trends: '0'
+          value_type: TEXT
+          description: Controller
+          tags:
+            - tag: Application
+              value: TCP
+        - uuid: 5aa5f134a955429e8a92239d1a72c55e
+          name: CLOSE_WAIT
+          type: DEPENDENT
+          key: tcp.closewait
+          delay: '0'
+          history: 30d
+          description: CLOSE_WAIT
+          preprocessing:
+            - type: REGEX
+              parameters:
+                - '([0-9]+).CLOSE_WAIT'
+                - \1
+          master_item:
+            key: 'system.run[netstat -natp | awk ''{print $6}'' | sort | uniq -c,]'
+          tags:
+            - tag: Application
+              value: TCP
+        - uuid: dd1b75038a834de296d1a1669b87a6f2
+          name: ESTABLISHED
+          type: DEPENDENT
+          key: tcp.established
+          delay: '0'
+          history: 30d
+          description: ESTABLISHED
+          preprocessing:
+            - type: REGEX
+              parameters:
+                - '([0-9]+).ESTABLISHED'
+                - \1
+          master_item:
+            key: 'system.run[netstat -natp | awk ''{print $6}'' | sort | uniq -c,]'
+          tags:
+            - tag: Application
+              value: TCP
+          triggers:
+            - uuid: 9bf99514241c40509657f3d0c1961ce5
+              expression: 'last(/Template_Unix_Connection_State/tcp.established)>{$ESTABLISHED}'
+              name: ESTABLISHED
+              priority: AVERAGE
+        - uuid: 43ba2d8476834441865ba5498bf0ac0d
+          name: FIN_WAIT1
+          type: DEPENDENT
+          key: tcp.finwait1
+          delay: '0'
+          history: 30d
+          description: FIN_WAIT1
+          preprocessing:
+            - type: REGEX
+              parameters:
+                - '([0-9]+).FIN_WAIT1'
+                - \1
+          master_item:
+            key: 'system.run[netstat -natp | awk ''{print $6}'' | sort | uniq -c,]'
+          tags:
+            - tag: Application
+              value: TCP
+        - uuid: e5a40f6d3c3f4128954a4a2c25b23825
+          name: FIN_WAIT2
+          type: DEPENDENT
+          key: tcp.finwait2
+          delay: '0'
+          history: 30d
+          description: FIN_WAIT2
+          preprocessing:
+            - type: REGEX
+              parameters:
+                - '([0-9]+).FIN_WAIT2'
+                - \1
+          master_item:
+            key: 'system.run[netstat -natp | awk ''{print $6}'' | sort | uniq -c,]'
+          tags:
+            - tag: Application
+              value: TCP
+        - uuid: 95154640050c488d954f7e7ee83612bf
+          name: LISTEN
+          type: DEPENDENT
+          key: tcp.listen
+          delay: '0'
+          history: 30d
+          description: LISTEN
+          preprocessing:
+            - type: REGEX
+              parameters:
+                - '([0-9]+).LISTEN'
+                - \1
+          master_item:
+            key: 'system.run[netstat -natp | awk ''{print $6}'' | sort | uniq -c,]'
+          tags:
+            - tag: Application
+              value: TCP
+        - uuid: 29d1641ebb5041fd82b124d33fed73a9
+          name: SYN_RECV
+          type: DEPENDENT
+          key: tcp.synrecv
+          delay: '0'
+          history: 30d
+          description: SYN_RECV
+          preprocessing:
+            - type: REGEX
+              parameters:
+                - '([0-9]+).SYN_RECV'
+                - \1
+          master_item:
+            key: 'system.run[netstat -natp | awk ''{print $6}'' | sort | uniq -c,]'
+          tags:
+            - tag: Application
+              value: TCP
+        - uuid: a65602a85597429da6789ed8d6626e53
+          name: SYN_SENT
+          type: DEPENDENT
+          key: tcp.synsent
+          delay: '0'
+          history: 30d
+          description: SYN_SENT
+          preprocessing:
+            - type: REGEX
+              parameters:
+                - '([0-9]+).SYN_SENT'
+                - \1
+          master_item:
+            key: 'system.run[netstat -natp | awk ''{print $6}'' | sort | uniq -c,]'
+          tags:
+            - tag: Application
+              value: TCP
+        - uuid: 0a8b96b23cce47a2b4779a46e81fe97d
+          name: TIME_WAIT
+          type: DEPENDENT
+          key: tcp.timewait
+          delay: '0'
+          history: 30d
+          description: TIME_WAIT
+          preprocessing:
+            - type: REGEX
+              parameters:
+                - '([0-9]+).TIME_WAIT'
+                - \1
+          master_item:
+            key: 'system.run[netstat -natp | awk ''{print $6}'' | sort | uniq -c,]'
+          tags:
+            - tag: Application
+              value: TCP
+          triggers:
+            - uuid: 84108b8d70674e44873f7f830a7769aa
+              expression: 'last(/Template_Unix_Connection_State/tcp.timewait)>{$TIME_WAIT}'
+              name: TIME_WAIT
+              priority: AVERAGE
+      macros:
+        - macro: '{$ESTABLISHED}'
+          value: '200'
+        - macro: '{$TIME_WAIT}'
+          value: '300'
+  graphs:
+    - uuid: da5395addb08474692e49e94e132c708
+      name: 'TCP Connections'
+      type: STACKED
+      show_legend: 'NO'
+      graph_items:
+        - drawtype: FILLED_REGION
+          color: 3333FF
+          item:
+            host: Template_Unix_Connection_State
+            key: tcp.timewait
+        - sortorder: '1'
+          drawtype: FILLED_REGION
+          color: FFFF66
+          item:
+            host: Template_Unix_Connection_State
+            key: tcp.listen
+        - sortorder: '1'
+          drawtype: FILLED_REGION
+          color: CCCCCC
+          item:
+            host: Template_Unix_Connection_State
+            key: tcp.finwait2
+        - sortorder: '2'
+          drawtype: FILLED_REGION
+          color: DDDDDD
+          item:
+            host: Template_Unix_Connection_State
+            key: tcp.finwait1
+        - sortorder: '4'
+          drawtype: FILLED_REGION
+          color: BBBB00
+          item:
+            host: Template_Unix_Connection_State
+            key: tcp.synsent
+        - sortorder: '5'
+          drawtype: FILLED_REGION
+          color: DDDD00
+          item:
+            host: Template_Unix_Connection_State
+            key: tcp.synrecv
+        - sortorder: '6'
+          drawtype: FILLED_REGION
+          color: '009900'
+          item:
+            host: Template_Unix_Connection_State
+            key: tcp.established
